@@ -1,24 +1,19 @@
-name: RSS to Telegram
+name: RSS to Telegram Advanced
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/15 * * * *"
 
 jobs:
-  rss-job:
+  run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch RSS and send
-        run: |
-          DATA=$(curl -s https://www.firstpost.com/commonfeeds/v1/mfp/rss/home.xml)
+      - uses: actions/checkout@v4
 
-          TITLE=$(echo "$DATA" | grep -oP '(?<=<title>).*?(?=</title>)' | sed -n '2p')
-          LINK=$(echo "$DATA" | grep -oP '(?<=<link>).*?(?=</link>)' | sed -n '2p')
+      - name: Install Python libs
+        run: pip install feedparser pillow requests
 
-          MESSAGE="$TITLE\n$LINK"
-
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
-          -d chat_id=${{ secrets.CHAT_ID }} \
-          -d text="$MESSAGE"
+      - name: Run bot
+        run: python bot.py
