@@ -66,6 +66,18 @@ with open("news.jpg", "rb") as photo:
         files={"photo": photo}
     )
 
+print("Telegram response:", response.text)
+
+with open("news.jpg", "rb") as photo:
+    response = requests.post(
+        url,
+        data={
+            "chat_id": CHAT_ID,
+            "caption": caption
+        },
+        files={"photo": photo}
+    )
+
 print("Telegram response:", response.text)    requests.post(url, data={
         "chat_id": CHAT_ID,
         "caption": caption
