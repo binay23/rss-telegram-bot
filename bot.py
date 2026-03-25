@@ -57,13 +57,7 @@ with open("news.jpg", "rb") as photo:
         files={"photo": photo}
     )
 
-print("Telegram response:", response.text)        },
-        files={
-            "photo": photo
-        }
-    )
-
-# Final log
+print("Telegram response:", response.text)# Final log
 print("Telegram response:", response.text)
 response = requests.get(image_url)
 img = Image.open(BytesIO(response.content)).convert("RGB")
