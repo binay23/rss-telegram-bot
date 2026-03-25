@@ -1,0 +1,14 @@
+name: RSS to Telegram
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send RSS to Telegram
+        run: |
+          curl -s https://api.rss2json.com/v1/api.json?rss_url=https://example.com/rss | jq -r '.items[0].title + " " + .items[0].link' | xargs -I {} curl -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" -d "chat_id=${{ secrets.CHAT_ID }}" -d "text={}"
