@@ -3,22 +3,31 @@ import requests
 from PIL import Image, ImageDraw
 from io import BytesIO
 import os
+import re
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-feed = feedparser.parse("https://www.firstpost.com/commonfeeds/v1/mfp/rss/home.xml")
+# Google News RSS (India Defence + International)
+feed = feedparser.parse(
+    "https://news.google.com/rss/search?q=india+defence+OR+india+military+OR+india+international+relations&hl=en-IN&gl=IN&ceid=IN:en"
+)
 
 if not feed.entries:
-    print("No entries found")
+    print("No news found")
     exit()
 
 entry = feed.entries[0]
 
+# Title
 title = entry.title
-summary = entry.summary[:200] if "summary" in entry else "No summary available"
 
-# Safe image extraction
+# Clean summary
+summary_raw = entry.summary if "summary" in entry else ""
+summary = re.sub('<.*?>', '', summary_raw)
+summary = summary[:200]
+
+# Image handling
 image_url = None
 
 if "media_content" in entry:
@@ -34,11 +43,10 @@ if not image_url:
 response = requests.get(image_url)
 img = Image.open(BytesIO(response.content)).convert("RGB")
 
-# Add watermark
+# Watermark
 draw = ImageDraw.Draw(img)
 width, height = img.size
-
-draw.text((width-200, height-30), "SSB JUNCTION", fill=(255,255,255))
+draw.text((width-220, height-40), "SSB JUNCTION", fill=(255,255,255))
 
 # Save image
 img.save("news.jpg")
@@ -46,24 +54,19 @@ img.save("news.jpg")
 # Send to Telegram
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
 
-caption = f"📰 {title}\n\n🧾 {summary}"
+caption = f"🪖 {title}\n\n🌍 {summary}"
 
 with open("news.jpg", "rb") as photo:
-    r = requests.post(url, data={
-        "chat_id": CHAT_ID,
-        "caption": caption
-    }, files={"photo": photo})
+    response = requests.post(
+        url,
+        data={
+            "chat_id": CHAT_ID,
+            "caption": caption
+        },
+        files={"photo": photo}
+    )
 
-img.save("news.jpg")
-print(r.text)
-
-# Send to Telegram
-url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
-
-caption = f"📰 {title}\n\n🧾 {summary}"
-
-with open("news.jpg", "rb") as photo:
-    requests.post(url, data={
+print("Telegram response:", response.text)    requests.post(url, data={
         "chat_id": CHAT_ID,
         "caption": caption
     }, files={"photo": photo})
