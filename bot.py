@@ -8,7 +8,6 @@ import re
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-# Google News RSS (India Defence + International)
 feed = feedparser.parse(
     "https://news.google.com/rss/search?q=india+defence+OR+india+military+OR+india+international+relations&hl=en-IN&gl=IN&ceid=IN:en"
 )
@@ -19,22 +18,48 @@ if not feed.entries:
 
 entry = feed.entries[0]
 
-# Title
 title = entry.title
 
-# Clean summary
 summary_raw = entry.summary if "summary" in entry else ""
 summary = re.sub('<.*?>', '', summary_raw)
 summary = summary[:200]
 
-# Image handling
+# Image
 image_url = None
-
 if "media_content" in entry:
     try:
         image_url = entry.media_content[0]['url']
     except:
         pass
+
+if not image_url:
+    image_url = "https://via.placeholder.com/800x400.png?text=SSB+Junction"
+
+response = requests.get(image_url)
+img = Image.open(BytesIO(response.content)).convert("RGB")
+
+# Watermark
+draw = ImageDraw.Draw(img)
+width, height = img.size
+draw.text((width-220, height-40), "SSB JUNCTION", fill=(255,255,255))
+
+img.save("news.jpg")
+
+# Send to Telegram
+url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+caption = f"🪖 {title}\n\n🌍 {summary}"
+
+with open("news.jpg", "rb") as photo:
+    response = requests.post(
+        url,
+        data={
+            "chat_id": CHAT_ID,
+            "caption": caption
+        },
+        files={"photo": photo}
+    )
+
+print("Telegram response:", response.text)        pass
 
 if not image_url:
     image_url = "https://via.placeholder.com/800x400.png?text=SSB+Junction"
