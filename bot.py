@@ -54,7 +54,8 @@ with open("news.jpg", "rb") as photo:
         "caption": caption
     }, files={"photo": photo})
 
-print(r.text)img.save("news.jpg")
+img.save("news.jpg")
+print(r.text)
 
 # Send to Telegram
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
